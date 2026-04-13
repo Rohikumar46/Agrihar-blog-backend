@@ -114,12 +114,36 @@ async function connectToDatabase() {
   }
 }
 
+async function seedSuperAdmin() {
+  const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  const password = (process.env.ADMIN_PASSWORD || '').trim();
+
+  if (!email || !password) {
+    return;
+  }
+
+  try {
+    const SuperAdmin = require('./models/SuperAdmin');
+    const existing = await SuperAdmin.findOne({ email });
+
+    if (existing) {
+      return;
+    }
+
+    await SuperAdmin.create({ email, password });
+    console.log(`SuperAdmin seeded: ${email}`);
+  } catch (err) {
+    console.error('SuperAdmin seed error:', err.message);
+  }
+}
+
 mongoose.connection.on('connected', () => {
   dbStatus.isConnected = true;
   dbStatus.lastConnectedAt = new Date().toISOString();
   dbStatus.lastError = null;
   dbStatus.lastErrorAt = null;
   console.log('MongoDB connected');
+  seedSuperAdmin();
 });
 
 mongoose.connection.on('disconnected', () => {
