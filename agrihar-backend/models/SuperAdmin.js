@@ -20,12 +20,12 @@ const superAdminSchema = new mongoose.Schema(
   }
 );
 
-superAdminSchema.pre('save', async function hashPassword(next) {
+// Mongoose 7+ async pre-hooks resolve automatically — do not call next()
+superAdminSchema.pre('save', async function hashPassword() {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
   this.password = await bcrypt.hash(this.password, 12);
-  return next();
 });
 
 superAdminSchema.methods.comparePassword = function comparePassword(plain) {
