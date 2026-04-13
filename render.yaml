@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: agrihar-blog-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node agrihar-backend/server.js
+    envVarGroups: []
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 200
+      # Set these in Render dashboard (secrets):
+      # MONGO_URI_ATLAS
+      # JWT_SECRET
+      # ADMIN_EMAIL
+      # ADMIN_PASSWORD
+      # CORS_ORIGIN  ← set to your Vercel frontend URL
