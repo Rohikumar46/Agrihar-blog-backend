@@ -25,11 +25,20 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 200;
 
+// Support wildcard, a single origin, or a comma-separated list of origins.
+// Example: CORS_ORIGIN=https://agrihar-blog-frontend.vercel.app,http://localhost:3000
+function buildCorsOrigin(raw) {
+  if (raw === '*') return true;
+  const list = raw.split(',').map((o) => o.trim()).filter(Boolean);
+  return list.length === 1 ? list[0] : list;
+}
+
 app.disable('x-powered-by');
 app.use(helmet());
 app.use(
   cors({
-    origin: CORS_ORIGIN === '*' ? true : CORS_ORIGIN,
+    origin: buildCorsOrigin(CORS_ORIGIN),
+    credentials: true,
   })
 );
 app.use(express.json());
