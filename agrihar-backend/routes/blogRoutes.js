@@ -5,6 +5,7 @@ const Blog = require('../models/Blog');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
+const ALLOWED_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected']);
 
 function createSlug(value) {
   return value
@@ -117,6 +118,28 @@ function validateBlogPayload(body, requireRequiredFields = true) {
     errors.push('category must be a string');
   }
 
+  if (Object.prototype.hasOwnProperty.call(body, 'status')) {
+    if (typeof body.status !== 'string' || !ALLOWED_STATUSES.has(body.status.trim().toLowerCase())) {
+      errors.push('status must be one of: draft, pending, approved, rejected');
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'adminMessage') && typeof body.adminMessage !== 'string') {
+    errors.push('adminMessage must be a string');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'authorName') && typeof body.authorName !== 'string') {
+    errors.push('authorName must be a string');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'authorImage') && typeof body.authorImage !== 'string') {
+    errors.push('authorImage must be a string');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, 'authorLinkedIn') && typeof body.authorLinkedIn !== 'string') {
+    errors.push('authorLinkedIn must be a string');
+  }
+
   if (Object.prototype.hasOwnProperty.call(body, 'tags')) {
     const tagsAreValid =
       Array.isArray(body.tags) && body.tags.every((tag) => typeof tag === 'string' && tag.trim().length > 0);
@@ -148,6 +171,7 @@ router.get('/', async (req, res) => {
 
     if (!includeDrafts) {
       query.isPublished = true;
+      query.status = 'approved';
     }
 
     if (typeof req.query.category === 'string' && req.query.category.trim()) {
@@ -210,7 +234,7 @@ router.get('/slug/:slug', async (req, res) => {
 
     const blog = await Blog.findOne({
       slug: req.params.slug.trim().toLowerCase(),
-      ...(includeDrafts ? {} : { isPublished: true }),
+      ...(includeDrafts ? {} : { isPublished: true, status: 'approved' }),
     });
 
     if (!blog) {
@@ -233,7 +257,7 @@ router.get('/:id', async (req, res) => {
 
     const blog = await Blog.findOne({
       _id: req.params.id,
-      ...(includeDrafts ? {} : { isPublished: true }),
+      ...(includeDrafts ? {} : { isPublished: true, status: 'approved' }),
     });
 
     if (!blog) {
@@ -254,9 +278,15 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
   }
 
     try {
-      const { title, content, author, imageUrl, excerpt, category, tags, isPublished } = req.body;
+      const { title, content, author, imageUrl, excerpt, category, tags, isPublished, status, adminMessage, authorName, authorImage, authorLinkedIn } = req.body;
 
       const slug = await ensureUniqueSlug(title);
+      const normalizedStatus =
+        typeof status === 'string' && ALLOWED_STATUSES.has(status.trim().toLowerCase())
+          ? status.trim().toLowerCase()
+          : typeof isPublished === 'boolean' && !isPublished
+            ? 'draft'
+            : 'approved';
 
       const newBlog = await Blog.create({
         title: title.trim(),
@@ -264,10 +294,15 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
         content: content.trim(),
         excerpt: typeof excerpt === 'string' ? excerpt.trim() : content.slice(0, 180).trim(),
         author,
+        authorName: typeof authorName === 'string' ? authorName.trim() : typeof author === 'string' ? author.trim() : '',
+        authorImage,
+        authorLinkedIn,
         imageUrl,
         category: typeof category === 'string' ? category.trim().toLowerCase() : undefined,
         tags: parseTags(tags),
-        isPublished,
+        status: normalizedStatus,
+        adminMessage: typeof adminMessage === 'string' ? adminMessage.trim() : '',
+        isPublished: normalizedStatus === 'approved',
       });
 
       return res.status(201).json(newBlog);
@@ -305,6 +340,35 @@ router.put('/:id', authenticateToken, requireRole('admin'), async (req, res) => 
 
       if (typeof updatePayload.category === 'string') {
         updatePayload.category = updatePayload.category.trim().toLowerCase();
+      }
+
+      if (typeof updatePayload.status === 'string') {
+        const normalizedStatus = updatePayload.status.trim().toLowerCase();
+
+        if (!ALLOWED_STATUSES.has(normalizedStatus)) {
+          return res.status(400).json({ message: 'status must be one of: draft, pending, approved, rejected' });
+        }
+
+        updatePayload.status = normalizedStatus;
+        updatePayload.isPublished = normalizedStatus === 'approved';
+      } else if (typeof updatePayload.isPublished === 'boolean') {
+        updatePayload.status = updatePayload.isPublished ? 'approved' : 'draft';
+      }
+
+      if (typeof updatePayload.adminMessage === 'string') {
+        updatePayload.adminMessage = updatePayload.adminMessage.trim();
+      }
+
+      if (typeof updatePayload.authorName === 'string') {
+        updatePayload.authorName = updatePayload.authorName.trim();
+      }
+
+      if (typeof updatePayload.authorImage === 'string') {
+        updatePayload.authorImage = updatePayload.authorImage.trim();
+      }
+
+      if (typeof updatePayload.authorLinkedIn === 'string') {
+        updatePayload.authorLinkedIn = updatePayload.authorLinkedIn.trim();
       }
 
       if (Object.prototype.hasOwnProperty.call(updatePayload, 'tags')) {

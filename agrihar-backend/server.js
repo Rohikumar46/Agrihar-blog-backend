@@ -11,6 +11,9 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const authRoutes = require('./routes/authRoutes');
 const blogRoutes = require('./routes/blogRoutes');
+const publicBlogRoutes = require('./routes/publicBlogRoutes');
+const adminBlogModerationRoutes = require('./routes/adminBlogModerationRoutes');
+const authorRoutes = require('./routes/authorRoutes');
 
 const app = express();
 
@@ -42,6 +45,9 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/blog', publicBlogRoutes);
+app.use('/api/admin', adminBlogModerationRoutes);
+app.use('/api/author', authorRoutes);
 
 app.get('/', (req, res) => {
   res.send('Agrihar blog backend is running');

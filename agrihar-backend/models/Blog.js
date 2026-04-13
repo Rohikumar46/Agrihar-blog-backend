@@ -46,6 +46,47 @@ const blogSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    status: {
+      type: String,
+      enum: ['draft', 'pending', 'approved', 'rejected'],
+      default: function setDefaultStatus() {
+        return this.isPublished ? 'approved' : 'draft';
+      },
+      index: true,
+      lowercase: true,
+      trim: true,
+    },
+    adminMessage: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    authorEmail: {
+      type: String,
+      default: '',
+      trim: true,
+      lowercase: true,
+    },
+    authorName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    authorImage: {
+      type: String,
+      default: 'https://ui-avatars.com/api/?name=Writer&background=0D8ABC&color=fff',
+      trim: true,
+    },
+    authorLinkedIn: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    subTitle: {
+      type: String,
+      default: '',
+      trim: true,
+    },
   },
   {
     timestamps: true,
