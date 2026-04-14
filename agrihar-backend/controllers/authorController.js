@@ -134,6 +134,7 @@ async function createBlog(req, res) {
       subTitle,
       category,
       imageUrl,
+      bodyImage,
       authorImage,
       authorLinkedIn,
       excerpt,
@@ -156,6 +157,7 @@ async function createBlog(req, res) {
           : DEFAULT_AUTHOR_IMAGE,
       authorLinkedIn: typeof authorLinkedIn === 'string' ? authorLinkedIn.trim() : '',
       imageUrl: typeof imageUrl === 'string' ? imageUrl.trim() : '',
+      bodyImage: typeof bodyImage === 'string' && bodyImage.trim() ? bodyImage.trim() : '',
       category:
         typeof category === 'string' && category.trim()
           ? category.trim().toLowerCase()
@@ -232,6 +234,10 @@ async function updateMyBlog(req, res) {
 
     if (typeof allowedFields.imageUrl === 'string') {
       update.imageUrl = allowedFields.imageUrl.trim();
+    }
+
+    if (typeof allowedFields.bodyImage === 'string') {
+      update.bodyImage = allowedFields.bodyImage.trim();
     }
 
     if (typeof allowedFields.category === 'string') {

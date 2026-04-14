@@ -110,6 +110,10 @@ function validateBlogPayload(body, requireRequiredFields = true) {
     errors.push('imageUrl must be a string');
   }
 
+  if (Object.prototype.hasOwnProperty.call(body, 'bodyImage') && typeof body.bodyImage !== 'string') {
+    errors.push('bodyImage must be a string');
+  }
+
   if (Object.prototype.hasOwnProperty.call(body, 'excerpt') && typeof body.excerpt !== 'string') {
     errors.push('excerpt must be a string');
   }
@@ -278,7 +282,22 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
   }
 
     try {
-      const { title, content, author, imageUrl, excerpt, category, tags, isPublished, status, adminMessage, authorName, authorImage, authorLinkedIn } = req.body;
+      const {
+        title,
+        content,
+        author,
+        imageUrl,
+        bodyImage,
+        excerpt,
+        category,
+        tags,
+        isPublished,
+        status,
+        adminMessage,
+        authorName,
+        authorImage,
+        authorLinkedIn,
+      } = req.body;
 
       const slug = await ensureUniqueSlug(title);
       const normalizedStatus =
@@ -298,6 +317,7 @@ router.post('/', authenticateToken, requireRole('admin'), async (req, res) => {
         authorImage,
         authorLinkedIn,
         imageUrl,
+        bodyImage: typeof bodyImage === 'string' ? bodyImage.trim() : '',
         category: typeof category === 'string' ? category.trim().toLowerCase() : undefined,
         tags: parseTags(tags),
         status: normalizedStatus,
@@ -369,6 +389,14 @@ router.put('/:id', authenticateToken, requireRole('admin'), async (req, res) => 
 
       if (typeof updatePayload.authorLinkedIn === 'string') {
         updatePayload.authorLinkedIn = updatePayload.authorLinkedIn.trim();
+      }
+
+      if (typeof updatePayload.imageUrl === 'string') {
+        updatePayload.imageUrl = updatePayload.imageUrl.trim();
+      }
+
+      if (typeof updatePayload.bodyImage === 'string') {
+        updatePayload.bodyImage = updatePayload.bodyImage.trim();
       }
 
       if (Object.prototype.hasOwnProperty.call(updatePayload, 'tags')) {

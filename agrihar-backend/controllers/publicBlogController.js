@@ -37,7 +37,7 @@ async function submitBlog(req, res) {
   }
 
   try {
-    const { title, imageUrl, authorName, authorImage, authorLinkedIn, content, excerpt, category } = req.body;
+    const { title, imageUrl, bodyImage, authorName, authorImage, authorLinkedIn, content, excerpt, category } = req.body;
 
     const slug = await ensureUniqueSlug(title);
 
@@ -47,6 +47,7 @@ async function submitBlog(req, res) {
       content: content.trim(),
       excerpt: typeof excerpt === 'string' && excerpt.trim() ? excerpt.trim() : content.slice(0, 180).trim(),
       imageUrl: imageUrl.trim(),
+      bodyImage: typeof bodyImage === 'string' && bodyImage.trim() ? bodyImage.trim() : '',
       author: authorName.trim(),
       authorName: authorName.trim(),
       authorImage: typeof authorImage === 'string' && authorImage.trim() ? authorImage.trim() : DEFAULT_AUTHOR_IMAGE,

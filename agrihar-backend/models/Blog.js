@@ -42,6 +42,10 @@ const blogSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    bodyImage: {
+      type: String,
+      default: '',
+    },
     isPublished: {
       type: Boolean,
       default: true,
@@ -90,11 +94,16 @@ const blogSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
 blogSchema.index({ createdAt: -1 });
 blogSchema.index({ category: 1, createdAt: -1 });
 blogSchema.index({ tags: 1 });
+blogSchema.virtual('previewImage').get(function getPreviewImage() {
+  return this.bodyImage || this.imageUrl || '';
+});
 
 module.exports = mongoose.model('Blog', blogSchema);

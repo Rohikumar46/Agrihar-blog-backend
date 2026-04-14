@@ -177,6 +177,10 @@ async function editBlog(req, res) {
       update.imageUrl = req.body.imageUrl.trim();
     }
 
+    if (typeof req.body.bodyImage === 'string') {
+      update.bodyImage = req.body.bodyImage.trim();
+    }
+
     if (typeof req.body.authorName === 'string') {
       update.authorName = req.body.authorName.trim();
       update.author = update.authorName;
